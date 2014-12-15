@@ -41,5 +41,9 @@ public class CoreActivity extends ActionBarActivity {
 	public int LogInfo(String info){
 		return Log.i(this.getClass().getSimpleName() , info);
 	}
+	
+	public boolean setLoading(boolean Load){
+		return true;
+	}
 
 }

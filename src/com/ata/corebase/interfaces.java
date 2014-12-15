@@ -214,6 +214,11 @@ public class interfaces {
 		 * @param result
 		 */
 		public void onError();
+		
+		/**
+		 * this function will call any time 
+		 */
+		public void Anytime(); 
 	}
 
 	public static interface onMenuResponse {
