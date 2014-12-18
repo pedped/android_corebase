@@ -1,8 +1,9 @@
 package com.ata.classes;
 
-import com.phonegap.FileUtils;
-
+import android.app.Activity;
 import android.content.Context;
+
+import com.ata.corebase.sf;
 
 /**
  * hold information about login request
@@ -22,6 +23,20 @@ public class LoginResult {
 	 */
 	public boolean Store(Context context) {
 		try {
+
+			// store in prefs manager
+			sf.SettingManager_WriteString((Activity) context, "userid",
+					user.userid + "");
+			sf.SettingManager_WriteString((Activity) context, "firstname",
+					user.firstName + "");
+			sf.SettingManager_WriteString((Activity) context, "lastname",
+					user.lastName + "");
+			sf.SettingManager_WriteString((Activity) context, "gender",
+					user.gender + "");
+			sf.SettingManager_WriteString((Activity) context, "imagelink",
+					user.imagelink + "");
+			sf.SettingManager_WriteString((Activity) context, "token", token
+					+ "");
 
 		} catch (Exception e) {
 			e.printStackTrace();

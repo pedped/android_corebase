@@ -62,8 +62,7 @@ public class sf {
 
 	// public static String getFied
 
-	public static boolean hasConnection(Context context)
-			throws ClassNotFoundException {
+	public static boolean hasConnection(Context context) {
 
 		ConnectivityManager connectivityManager = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -251,7 +250,7 @@ public class sf {
 		}
 	}
 
-	public static final String PREFS_NAME = "internal_prefs";
+	public static final String PREFS_NAME = "internal";
 
 	public static String GetMD5(String filename) {
 
@@ -296,11 +295,11 @@ public class sf {
 
 	}
 
-	public static String SettingManager_ReadString(Activity activity,
+	public static String SettingManager_ReadString(Context context,
 			String PropertyName) {
 
 		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(activity);
+				.getDefaultSharedPreferences(context);
 		return prefs.getString(PropertyName, "");
 
 	}
@@ -510,6 +509,24 @@ public class sf {
 
 	}
 
+	/**
+	 * checkes if the user is logged in
+	 * 
+	 * @param context
+	 * @return
+	 */
+	public static boolean isUserLoggedIn(Context context) {
+		String userid = sf.SettingManager_ReadString(context, "userid");
+		return userid != "";
+	}
+
+	public static boolean requireUserLogin(Context context) {
+
+		String value = sf
+				.SettingManager_ReadString(context, "requireuserlogin");
+		return value != null && value.equals("1");
+	}
+
 	public static String ConvertLongToFileSize(long size) {
 		if (size <= 0)
 			return "0";
@@ -587,7 +604,8 @@ public class sf {
 		return date + "";
 	}
 
-	public static void sendTextMessage(Activity activity, String phone) {
+	public static void sendTextMessage(Activity activity, String message,
+			String phone) {
 		activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("sms:"
 				+ phone)));
 

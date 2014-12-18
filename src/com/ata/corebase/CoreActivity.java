@@ -1,5 +1,7 @@
 package com.ata.corebase;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.widget.Button;
@@ -33,17 +35,26 @@ public class CoreActivity extends ActionBarActivity {
 	public UnlimitedListView findUnlimitedListView(int ResCode) {
 		return (UnlimitedListView) this.findViewById(ResCode);
 	}
-	
-	public int LogDebug(String info){
-		return Log.d(this.getClass().getSimpleName() , info);
+
+	public int LogDebug(String info) {
+		return Log.d(this.getClass().getSimpleName(), info);
 	}
-	
-	public int LogInfo(String info){
-		return Log.i(this.getClass().getSimpleName() , info);
+
+	public int LogInfo(String info) {
+		return Log.i(this.getClass().getSimpleName(), info);
 	}
-	
-	public boolean setLoading(boolean Load){
+
+	public boolean setLoading(boolean Load) {
 		return true;
+	}
+
+	/**
+	 * start activiy with new class name
+	 * 
+	 * @param ActivityClass
+	 */
+	public void startActivityWithName(Class<?> ActivityClass) {
+		startActivity(new Intent(this, ActivityClass));
 	}
 
 }

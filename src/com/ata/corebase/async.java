@@ -82,13 +82,17 @@ public class async {
 
 				} catch (Exception e) {
 					// there is a bad problem in parsing the request
-
+					e.printStackTrace();
 					Log.w("json result parse problem", result);
 					// e.printStackTrace();
 
 					if (Listner != null) {
 						Listner.onError();
 					}
+				}
+				// call any time function
+				if (Listner != null) {
+					Listner.Anytime();
 				}
 			} else {
 				if (Listner != null) {
