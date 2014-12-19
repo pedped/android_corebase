@@ -3,8 +3,8 @@ package com.ata.corebase;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.ata.classes.LoginResult;
-import com.ata.classes.User;
+import com.corebase.classes.LoginResult;
+import com.corebase.classes.User;
 
 public class ObjectParser {
 

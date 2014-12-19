@@ -1,13 +1,23 @@
 package com.ata.corebase;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -20,29 +30,714 @@ import javax.crypto.spec.SecretKeySpec;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.FragmentManager;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.DownloadManager;
+import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentManager.BackStackEntry;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
+import android.util.AttributeSet;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.DatePicker;
+import android.widget.ExpandableListAdapter;
+import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.corebase.config.BaseConfig;
+
 public class sf {
+
+	private static final String TAG = "Static Functions";
+
+	public static Object ExpandableList_GetLongClickItem(
+			ExpandableListView listView, ExpandableListAdapter adapter,
+			int position) {
+
+		long pos = listView.getExpandableListPosition(position);
+
+		// get type and correct positions
+		int itemType = ExpandableListView.getPackedPositionType(pos);
+		int groupPos = ExpandableListView.getPackedPositionGroup(pos);
+		int childPos = ExpandableListView.getPackedPositionChild(pos);
+
+		// if child is long-clicked
+		if (itemType == ExpandableListView.PACKED_POSITION_TYPE_CHILD) {
+
+			return adapter.getChild(groupPos, childPos);
+		} else {
+			return null;
+		}
+	}
+
+	private static boolean File_SaveString(Context context, String path,
+			String string) {
+
+		FileOutputStream fop = null;
+		File file;
+
+		try {
+
+			file = new File(path);
+			fop = new FileOutputStream(file);
+
+			// if file doesnt exists, then create it
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+
+			// get the content in bytes
+			byte[] contentInBytes = string.getBytes();
+
+			fop.write(contentInBytes);
+			fop.flush();
+			fop.close();
+
+			System.out.println("Done");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		try {
+			if (fop != null) {
+				fop.close();
+			}
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+	}
+
+	public static boolean SDCART_isReadable() {
+
+		boolean mExternalStorageAvailable = false;
+		try {
+			String state = Environment.getExternalStorageState();
+
+			if (Environment.MEDIA_MOUNTED.equals(state)) {
+				// We can read and write the media
+				mExternalStorageAvailable = true;
+				Log.i("isSdReadable", "External storage card is readable.");
+			} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+				// We can only read the media
+				Log.i("isSdReadable", "External storage card is readable.");
+				mExternalStorageAvailable = true;
+			} else {
+				// Something else is wrong. It may be one of many other
+				// states, but all we need to know is we can neither read nor
+				// write
+				mExternalStorageAvailable = false;
+			}
+		} catch (Exception ex) {
+
+		}
+		return mExternalStorageAvailable;
+	}
+
+	public static String File_Read(Context context, String fileName) {
+		String stringToReturn = " ";
+		try {
+			if (SDCART_isReadable()) // isSdReadable()e method is define at
+										// bottom of
+			// the post
+			{
+
+				FileReader fis = new FileReader(new File(fileName));
+				BufferedReader reader = new BufferedReader(fis);
+				StringBuilder stringBuilder = new StringBuilder();
+				String receiveString = "";
+				while ((receiveString = reader.readLine()) != null) {
+					stringBuilder.append(receiveString);
+				}
+				fis.close();
+				return stringBuilder.toString();
+
+			}
+		} catch (FileNotFoundException e) {
+			Log.e("TAG", "File not found: " + e.toString());
+		} catch (IOException e) {
+			Log.e("TAG", "Can not read file: " + e.toString());
+		}
+
+		return stringToReturn;
+	}
+
+	public static Bitmap Notification_GetResizedIcon(Context context,
+			Bitmap bitmap) {
+		Resources res = context.getResources();
+		int height = (int) res
+				.getDimension(android.R.dimen.notification_large_icon_height);
+		int width = (int) res
+				.getDimension(android.R.dimen.notification_large_icon_width);
+		bitmap = Bitmap.createScaledBitmap(bitmap, width * 8 / 10,
+				height * 8 / 10, false);
+		return bitmap;
+	}
+
+	public enum ApplicationNotificationType {
+		Player, Sync, Recorder
+	}
+
+	public static List<ApplicationNotificationType> stayOnTop_NotificationsList = new ArrayList<sf.ApplicationNotificationType>();
+
+	public static void StayOnTop(ApplicationNotificationType type,
+			int NotificationID, Context context, Intent resultIntent,
+			String title, String description, int iconID) {
+
+		// as application can have many types of notification, we have to check
+		// for the list and check if there is any notification before, if there
+		// was, we have to keep number one as foreground and make the new one as
+		// only notification, if there is no, just start the notification as
+		// forground
+
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				context)
+				.setSmallIcon(iconID)
+				.setContentTitle(title)
+				.setLights(
+						context.getResources().getColor(
+								BaseConfig.NOTIFICATION_COLOR), 800, 400)
+				.setContentText(description);
+
+		TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+		resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+				| Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		stackBuilder.addNextIntent(resultIntent);
+
+		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
+				PendingIntent.FLAG_UPDATE_CURRENT);
+		mBuilder.setContentIntent(resultPendingIntent);
+
+		if (stayOnTop_NotificationsList.size() == 0) {
+			// we have to just start notification as forground
+			Notification notification = mBuilder.build();
+			notification.flags |= Notification.FLAG_ONGOING_EVENT
+					| Notification.FLAG_FOREGROUND_SERVICE
+					| Notification.FLAG_NO_CLEAR;
+
+			((IntentService) context).startForeground(NotificationID,
+					notification);
+
+			// add the type to the list
+			stayOnTop_NotificationsList.add(type);
+
+		} else {
+
+			// we just need to add the new item as notification
+			Notification notification = mBuilder.build();
+			String ns = Context.NOTIFICATION_SERVICE;
+			NotificationManager mNotificationManager = (NotificationManager) context
+					.getSystemService(ns);
+
+			mNotificationManager.notify(NotificationID, notification);
+
+			// the size is not zero, check if we have not added that
+			// notification to the list before
+			if (!stayOnTop_NotificationsList.contains(type)) {
+				// add the type to the list
+				stayOnTop_NotificationsList.add(type);
+			} else {
+				// already on top we do not need to show that again
+				Log.d(TAG, "Notification Already On Top");
+			}
+		}
+
+	}
+
+	public static void StayOnTop_Cancel(ApplicationNotificationType type,
+			int NotificationID, Context context) {
+
+		if (stayOnTop_NotificationsList.size() == 0) {
+			// we have problem, the stay on top should not be zero
+			Log.e(TAG, "StayOnTop_Cancel can not be empty");
+		} else if (stayOnTop_NotificationsList.size() == 1) {
+			if (stayOnTop_NotificationsList.get(0) == type) {
+				((IntentService) context).stopForeground(true);
+				stayOnTop_NotificationsList.clear();
+
+			} else {
+				Log.e(TAG, "Wrong Notification Type 1");
+			}
+		} else {
+
+			if (stayOnTop_NotificationsList.contains(type)) {
+
+				Notification_Cancel(context, NotificationID);
+
+				// we have to only remove the notification item
+				stayOnTop_NotificationsList.remove(type);
+			} else {
+				Log.e(TAG, "Wrong Notification Type 2");
+			}
+		}
+
+	}
+
+	public static class DatePickerFragment extends DialogFragment implements
+			DatePickerDialog.OnDateSetListener {
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			// Use the current date as the default date in the picker
+			final Calendar c = Calendar.getInstance();
+			int year = c.get(Calendar.YEAR);
+			int month = c.get(Calendar.MONTH);
+			int day = c.get(Calendar.DAY_OF_MONTH);
+
+			// Create a new instance of DatePickerDialog and return it
+			return new DatePickerDialog(getActivity(), this, year, month, day);
+		}
+
+		public void onDateSet(DatePicker view, int year, int month, int day) {
+			// Do something with the date chosen by the user
+		}
+	}
+
+	public static Drawable getNotificationIcon(Context context,
+			int notificatonCount) {
+
+		int imageW = 64;
+		int imageH = 64;
+
+		int x = 32;
+		int y = 32;
+		int r = 28;
+
+		Paint mPaintBack = new Paint();
+		mPaintBack.setAntiAlias(true);
+		mPaintBack.setColor(Color.WHITE);
+
+		// Background
+		Bitmap bitmap = Bitmap.createBitmap(imageW, imageH, Config.ARGB_8888);
+		Canvas mCanvas = new Canvas(bitmap);
+		mCanvas.drawCircle(x, y, r, mPaintBack);
+
+		// Text
+		Paint mPaintText = new Paint();
+		mPaintText.setColor(Color.RED);
+		mPaintText.setAntiAlias(true);
+
+		int size = 0;
+		do {
+			mPaintText.setTextSize(++size);
+		} while (mPaintText.measureText(notificatonCount + "") < (imageW * 0.4f));
+
+		float TextWidth = mPaintText.measureText(notificatonCount + "");
+
+		mCanvas.drawText(notificatonCount + "", (imageW - TextWidth) / 2,
+				imageH * 0.8f, mPaintText);
+
+		BitmapDrawable drawable = new BitmapDrawable(context.getResources(),
+				bitmap);
+
+		return drawable;
+	}
+
+	public static boolean isDownloadManagerAvailable(Context context) {
+		try {
+			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
+				return false;
+			}
+			Intent intent = new Intent(Intent.ACTION_MAIN);
+			intent.addCategory(Intent.CATEGORY_LAUNCHER);
+			intent.setClassName("com.android.providers.downloads.ui",
+					"com.android.providers.downloads.ui.DownloadList");
+			List<ResolveInfo> list = context.getPackageManager()
+					.queryIntentActivities(intent,
+							PackageManager.MATCH_DEFAULT_ONLY);
+			return list.size() > 0;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public static void DownloadFileWithAndroidDownloader(Context context,
+			String url, String title, String Description, String SaveFileName) {
+
+		DownloadManager.Request request = new DownloadManager.Request(
+				Uri.parse(url));
+
+		request.setDescription(Description);
+		request.setTitle(title);
+		// in order for this if to run, you must use the android 3.2 to compile
+		// your app
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			request.allowScanningByMediaScanner();
+			request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+		}
+		request.setDestinationInExternalPublicDir(
+				Environment.DIRECTORY_DOWNLOADS, SaveFileName);
+
+		// get download service and enqueue file
+		DownloadManager manager = (DownloadManager) context
+				.getSystemService(Context.DOWNLOAD_SERVICE);
+		manager.enqueue(request);
+
+	}
+
+	public static String getSimpleDurationFormat(int size) {
+		if (size < 60) {
+			if (size == 1)
+				return size + " Sec";
+			else
+				return size + " Secs";
+		} else if (size < 60 * 60) {
+
+			int minute = size / 60;
+			return minute + " minutes " + (size % 60) + " secounds";
+		} else if (size > 60 * 60) {
+
+			int hour = size / 3600;
+			int minute = (size % 3600) / 60;
+			int secound = (size % 3600) % 60;
+			return hour + " hours" + minute + " minutes " + secound
+					+ " secounds";
+		} else {
+			return "more than one day";
+		}
+	}
+
+	public class RoundedImageView extends ImageView {
+
+		public RoundedImageView(Context context) {
+			super(context);
+
+		}
+
+		public RoundedImageView(Context context, AttributeSet attrs) {
+			super(context, attrs);
+		}
+
+		public RoundedImageView(Context context, AttributeSet attrs,
+				int defStyle) {
+			super(context, attrs, defStyle);
+		}
+
+		@Override
+		protected void onDraw(Canvas canvas) {
+
+			Drawable drawable = getDrawable();
+
+			if (drawable == null) {
+				return;
+			}
+
+			if (getWidth() == 0 || getHeight() == 0) {
+				return;
+			}
+			Bitmap b = ((BitmapDrawable) drawable).getBitmap();
+			Bitmap bitmap = b.copy(Bitmap.Config.ARGB_8888, true);
+
+			int w = getWidth(), h = getHeight();
+
+			Bitmap roundBitmap = getCroppedBitmap(bitmap, w);
+			canvas.drawBitmap(roundBitmap, 0, 0, null);
+
+		}
+
+		public Bitmap getCroppedBitmap(Bitmap bmp, int radius) {
+			Bitmap sbmp;
+			if (bmp.getWidth() != radius || bmp.getHeight() != radius)
+				sbmp = Bitmap.createScaledBitmap(bmp, radius, radius, false);
+			else
+				sbmp = bmp;
+			Bitmap output = Bitmap.createBitmap(sbmp.getWidth(),
+					sbmp.getHeight(), Config.ARGB_8888);
+			Canvas canvas = new Canvas(output);
+
+			final int color = 0xffa19774;
+			final Paint paint = new Paint();
+			final Rect rect = new Rect(0, 0, sbmp.getWidth(), sbmp.getHeight());
+
+			paint.setAntiAlias(true);
+			paint.setFilterBitmap(true);
+			paint.setDither(true);
+			canvas.drawARGB(0, 0, 0, 0);
+			paint.setColor(Color.parseColor("#BAB399"));
+			canvas.drawCircle(sbmp.getWidth() / 2 + 0.7f,
+					sbmp.getHeight() / 2 + 0.7f, sbmp.getWidth() / 2 + 0.1f,
+					paint);
+			paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+			canvas.drawBitmap(sbmp, rect, rect, paint);
+
+			return output;
+		}
+	}
+
+	public static Bitmap CircleBitmap(Bitmap bitmapimg) {
+
+		Bitmap output = Bitmap.createBitmap(bitmapimg.getWidth(),
+				bitmapimg.getHeight(), Config.ARGB_8888);
+		Canvas canvas = new Canvas(output);
+
+		final int color = 0xff424242;
+		final Paint paint = new Paint();
+		final Rect rect = new Rect(0, 0, bitmapimg.getWidth(),
+				bitmapimg.getHeight());
+
+		paint.setAntiAlias(true);
+		canvas.drawARGB(0, 0, 0, 0);
+		paint.setColor(color);
+		canvas.drawCircle(bitmapimg.getWidth() / 2, bitmapimg.getHeight() / 2,
+				bitmapimg.getWidth() / 2, paint);
+		paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+		canvas.drawBitmap(bitmapimg, rect, rect, paint);
+		return output;
+
+	}
+
+	public static String GetDayName(int day) {
+		switch (day) {
+		case 0:
+			return "Sunday";
+		case 1:
+			return "Monday";
+		case 2:
+			return "Tusday";
+		case 3:
+			return "Wednesday";
+		case 4:
+			return "Thirsday";
+		case 5:
+			return "Friday";
+		case 6:
+			return "Saturday";
+		}
+		return "";
+	}
+
+	public static void File_Copy(File src, File dst) throws IOException {
+
+		InputStream in = new FileInputStream(src);
+		OutputStream out = new FileOutputStream(dst);
+
+		// Transfer bytes from in to out
+		byte[] buf = new byte[1024];
+		int len;
+		while ((len = in.read(buf)) > 0) {
+			out.write(buf, 0, len);
+		}
+		in.close();
+		out.close();
+	}
+
+	public static String getDate(int year, int month, int day) {
+
+		if (day == 0 && month == 0 && year == 0) {
+			return "";
+		}
+
+		String result = "";
+		result += year + "/";
+		result += getMonthName(month) + "/";
+		result += day + "";
+		return result;
+	}
+
+	private static String getMonthName(int month) {
+		switch (month) {
+		case 0:
+			return "January";
+		case 1:
+			return "February";
+		case 2:
+			return "March";
+		case 3:
+			return "April";
+		case 4:
+			return "May";
+		case 5:
+			return "June";
+		case 6:
+			return "July";
+		case 7:
+			return "August";
+		case 8:
+			return "September";
+		case 9:
+			return "October";
+		case 10:
+			return "November";
+		case 11:
+			return "December";
+		default:
+			return "invalid month";
+		}
+	}
+
+	public static void Notification_Show(int NotificationID, Context context,
+			Intent resultIntent, String title, String description, int iconID,
+			Bitmap largeIcon) {
+
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				context)
+				.setSmallIcon(iconID)
+				.setContentTitle(title)
+				.setLights(
+						context.getResources().getColor(
+								BaseConfig.NOTIFICATION_COLOR), 800, 400)
+				.setContentText(description);
+
+		if (largeIcon != null) {
+			mBuilder.setLargeIcon(largeIcon);
+		}
+
+		// Creates an explicit intent for an Activity in your app
+
+		// The stack builder object will contain an artificial back stack for
+		// the
+		// started Activity.
+		// This ensures that navigating backward from the Activity leads out of
+		// your application to the Home screen.
+		TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+		// Adds the back stack for the Intent (but not the Intent itself)
+		// stackBuilder.addParentStack(ac_Notifiaction.class);
+		// Adds the Intent that starts the Activity to the top of the stack
+		stackBuilder.addNextIntent(resultIntent);
+		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
+				PendingIntent.FLAG_UPDATE_CURRENT);
+		mBuilder.setContentIntent(resultPendingIntent);
+		NotificationManager mNotificationManager = (NotificationManager) context
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		// mId allows you to update the notification later on.
+		mNotificationManager.notify(NotificationID, mBuilder.build());
+
+	}
+
+	public static void Notification_Show(int NotificationID, Context context,
+			Intent resultIntent, String title, String description, int iconID) {
+
+		Notification_Show(NotificationID, context, resultIntent, title,
+				description, iconID, null);
+	}
+
+	public static void Notification_Cancel(Context context, int NotifiactionID) {
+		NotificationManager mNotificationManager = (NotificationManager) context
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(NotifiactionID);
+	}
+
+	public static void SwitchFragment(Context context, int LayoutID,
+			Fragment frg) {
+
+		SwitchFragment(context, LayoutID, frg, false);
+
+	}
+
+	public static void SwitchFragment(Context context, int LayoutID,
+			Fragment frg, boolean startFragment) {
+
+		FragmentManager fragmentManager = ((FragmentActivity) context)
+				.getSupportFragmentManager();
+		FragmentTransaction ft = fragmentManager.beginTransaction();
+
+		// get classname of fragment
+		String frg_ClassName = frg.getClass().toString();
+
+		// Log.d(TAG, "fragmentManager.getFragments().size() : "
+		// + fragmentManager.getFragments().size());
+		//
+		if (fragmentManager.getBackStackEntryCount() > 0) {
+
+			BackStackEntry backStack = fragmentManager
+					.getBackStackEntryAt(fragmentManager
+							.getBackStackEntryCount() - 1);
+			if (backStack.getName().equals(frg_ClassName)) {
+				// we already have that item in list
+				Toast.makeText(context, "Task Already in front",
+						Toast.LENGTH_SHORT).show();
+			} else {
+				if (startFragment) {
+					ft.replace(LayoutID, frg);
+				} else {
+					ft.replace(LayoutID, frg);
+					ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+					ft.addToBackStack(frg_ClassName);
+				}
+			}
+		} else {
+			if (startFragment) {
+				ft.replace(LayoutID, frg);
+			} else {
+				ft.replace(LayoutID, frg);
+				ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+				ft.addToBackStack(frg_ClassName);
+			}
+		}
+		//
+		// Fragment lastFrg = fragmentManager.getFragments().get(
+		// fragmentManager.getFragments().size() - 1);
+		//
+		// Log.d(TAG, "fr " + frg.g + " - " + lastFrg.getId());
+		// if (lastFrg.equals(frg)) {
+
+		// return;
+		// }
+		//
+		// }
+
+		ft.commit();
+
+	}
+
+	public static Bitmap RotateBitmap(Bitmap bitmap, int degree) {
+		Matrix matrix = new Matrix();
+
+		matrix.postRotate(degree);
+
+		Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap,
+				bitmap.getWidth(), bitmap.getHeight(), true);
+
+		return Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.getWidth(),
+				scaledBitmap.getHeight());
+	}
 
 	public static Object getFieldValue(Object item, String name) {
 		try {
@@ -58,6 +753,55 @@ public class sf {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	/**
+	 * Vibrate for some millisecond
+	 * 
+	 * @param ctx
+	 *            Context
+	 * @param time
+	 *            in millisecond
+	 */
+	public static void vibrate(Context ctx, long time) {
+		Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+		// Vibrate for 500 milliseconds
+		v.vibrate(time);
+	}
+
+	/**
+	 * Vibrate Device
+	 * 
+	 * @param ctx
+	 * @param time
+	 *            long pattern to vibrate
+	 */
+	public static void vibrate(Context ctx, long[] time) {
+		Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+		v.vibrate(time, -1);
+	}
+
+	public static void cancelNotification(Context ctx, int notifyId) {
+		String ns = Context.NOTIFICATION_SERVICE;
+		NotificationManager nMgr = (NotificationManager) ctx
+				.getSystemService(ns);
+		nMgr.cancel(notifyId);
+	}
+
+	/**
+	 * Open URL
+	 * 
+	 * @param context
+	 * @param url
+	 */
+	public static void OpenUrl(Context context, String url) {
+
+		// fix url
+		if (!url.startsWith("http://") && !url.startsWith("https://"))
+			url = "http://" + url;
+		// open in browser
+		Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+		context.startActivity(browserIntent);
 	}
 
 	// public static String getFied
@@ -592,13 +1336,13 @@ public class sf {
 		return deviceId;
 	}
 
-	public static void setFragment(Activity context, int container,
-			Fragment fragment) {
-		FragmentManager fragmentManager = context.getFragmentManager();
-		fragmentManager.beginTransaction().replace(container, fragment)
-				.commit();
-
-	}
+	// public static void setFragment(Activity context, int container,
+	// Fragment fragment) {
+	// FragmentManager fragmentManager = context.getFragmentManager();
+	// fragmentManager.beginTransaction().replace(container, fragment)
+	// .commit();
+	//
+	// }
 
 	public static String getDate(long date) {
 		return date + "";
@@ -691,6 +1435,14 @@ public class sf {
 		} else {
 			return value / 1000 + " میلیارد تومان";
 		}
+	}
+
+	/**
+	 * 
+	 * @return current time in sec like 14656121541
+	 */
+	public static long getUnixTime() {
+		return System.currentTimeMillis() / 1000L;
 	}
 
 }

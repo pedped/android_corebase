@@ -6,4 +6,16 @@
 
     <string name="motevajehshodam">متوجه شدم</string>
 
+    <string name="are_you_sure_you_want_logout_of_your_account">Are you sure you want logout of your account</string>
+
+    <string name="logout">Logout</string>
+
+    <string name="yes_logout">Yes, Logout</string>
+
+    <string name="loading_please_wait">Loading, Please Wait</string>
+
+    <string name="ok">OK</string>
+
+    <string name="ooops">Ooops</string>
+
 </resources>

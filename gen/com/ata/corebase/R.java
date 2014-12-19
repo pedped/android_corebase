@@ -1630,7 +1630,7 @@ containing a value of this type.
         public static int end=0x7f050013;
         public static int expand_activities_button=0x7f050044;
         public static int expanded_menu=0x7f05004a;
-        public static int fl_inner=0x7f05005a;
+        public static int fl_inner=0x7f05005e;
         public static int flip=0x7f050034;
         public static int grayscale=0x7f05002a;
         public static int gridview=0x7f050035;
@@ -1644,6 +1644,8 @@ containing a value of this type.
         public static int image=0x7f050045;
         public static int listMode=0x7f050001;
         public static int list_item=0x7f050047;
+        public static int loadingview=0x7f05005a;
+        public static int main=0x7f05005d;
         public static int manualOnly=0x7f050030;
         public static int match_parent=0x7f050024;
         public static int middle=0x7f050012;
@@ -1652,16 +1654,17 @@ containing a value of this type.
         public static int none=0x7f050010;
         public static int normal=0x7f050000;
         public static int production=0x7f05001f;
+        public static int progressBar1=0x7f05005b;
         public static int progress_circular=0x7f050018;
         public static int progress_horizontal=0x7f050019;
         public static int pullDownFromTop=0x7f050031;
         public static int pullFromEnd=0x7f05002e;
         public static int pullFromStart=0x7f05002d;
         public static int pullUpFromBottom=0x7f050032;
-        public static int pull_to_refresh_image=0x7f05005b;
-        public static int pull_to_refresh_progress=0x7f05005c;
-        public static int pull_to_refresh_sub_text=0x7f05005e;
-        public static int pull_to_refresh_text=0x7f05005d;
+        public static int pull_to_refresh_image=0x7f05005f;
+        public static int pull_to_refresh_progress=0x7f050060;
+        public static int pull_to_refresh_sub_text=0x7f050062;
+        public static int pull_to_refresh_text=0x7f050061;
         public static int radio=0x7f05004d;
         public static int rotate=0x7f050033;
         public static int sandbox=0x7f050020;
@@ -1687,6 +1690,7 @@ containing a value of this type.
         public static int submit_area=0x7f050057;
         public static int tabMode=0x7f050002;
         public static int terrain=0x7f05001b;
+        public static int textView1=0x7f05005c;
         public static int title=0x7f050049;
         public static int top_action_bar=0x7f05003e;
         public static int up=0x7f05003f;
@@ -1746,9 +1750,11 @@ containing a value of this type.
         public static int abc_search_dropdown_item_icons_2line=0x7f030015;
         public static int abc_search_view=0x7f030016;
         public static int abc_simple_decor=0x7f030017;
-        public static int pull_to_refresh_header_horizontal=0x7f030018;
-        public static int pull_to_refresh_header_vertical=0x7f030019;
-        public static int support_simple_spinner_dropdown_item=0x7f03001a;
+        public static int loading=0x7f030018;
+        public static int master=0x7f030019;
+        public static int pull_to_refresh_header_horizontal=0x7f03001a;
+        public static int pull_to_refresh_header_vertical=0x7f03001b;
+        public static int support_simple_spinner_dropdown_item=0x7f03001c;
     }
     public static final class string {
         /**  Content description for the action bar "home" affordance. [CHAR LIMIT=NONE] 
@@ -1792,6 +1798,7 @@ containing a value of this type.
          */
         public static int abc_shareactionprovider_share_with_application=0x7f0a000b;
         public static int app_name=0x7f0a002d;
+        public static int are_you_sure_you_want_logout_of_your_account=0x7f0a0030;
         /**  Button in confirmation dialog to enable Google Play services.  Clicking it
         will direct user to application settings of Google Play services where they
         can enable it [CHAR LIMIT=40] 
@@ -1882,7 +1889,11 @@ containing a value of this type.
          */
         public static int common_signin_button_text_long=0x7f0a0025;
         public static int khata=0x7f0a002e;
+        public static int loading_please_wait=0x7f0a0033;
+        public static int logout=0x7f0a0031;
         public static int motevajehshodam=0x7f0a002f;
+        public static int ok=0x7f0a0034;
+        public static int ooops=0x7f0a0035;
         /**  Just use standard Pull Down String when pulling up. These can be set for languages which require it 
  Just use standard Pull Down String when pulling up. These can be set for languages which require it 
          */
@@ -1896,6 +1907,7 @@ containing a value of this type.
          available or up-to-date 
          */
         public static int wallet_buy_button_place_holder=0x7f0a0026;
+        public static int yes_logout=0x7f0a0032;
     }
     public static final class style {
         /** 

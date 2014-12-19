@@ -143,10 +143,10 @@ public class nc {
 
 				Log.i("WEB RESPONSE",
 						"=================================================================");
-				Log.i("WEB RESPONSE", "request: " + params.get(0).getValue());
+				Log.i("WEB RESPONSE", "requests: \n ");
 
 				// echo parameters
-				for (int i = 1; i < params.size(); i++) {
+				for (int i = 0; i < params.size(); i++) {
 					Log.i("WEB RESPONSE", "* " + params.get(i).getName()
 							+ " : " + params.get(i).getValue());
 				}
