@@ -82,7 +82,7 @@ public class async {
 
 				} catch (Exception e) {
 					// there is a bad problem in parsing the request
-					e.printStackTrace();
+					e.printStackTrace(); 
 					Log.w("json result parse problem", result);
 					// e.printStackTrace();
 
