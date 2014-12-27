@@ -95,6 +95,15 @@ public class nc {
 			Context cont) {
 
 		try {
+
+			// check if user logged in, add user id and token to request
+			if (sf.isUserLoggedIn(cont)) {
+				String userid = sf.SettingManager_ReadString(cont, "userid");
+				String token = sf.SettingManager_ReadString(cont, "token");
+				params.add(new BasicNameValuePair("auth_userid", userid));
+				params.add(new BasicNameValuePair("auth_token", token));
+			}
+
 			DefaultHttpClient client = new DefaultHttpClient();
 			String postURL = url;
 			HttpPost post = new HttpPost(postURL);
@@ -144,6 +153,9 @@ public class nc {
 				Log.i("WEB RESPONSE",
 						"=================================================================");
 				Log.i("WEB RESPONSE", "requests: \n ");
+
+				// echo url
+				Log.i("WEB RESPONSE", "URL: " + url);
 
 				// echo parameters
 				for (int i = 0; i < params.size(); i++) {

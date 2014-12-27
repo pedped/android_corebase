@@ -130,6 +130,14 @@ public class CoreActivity extends ActionBarActivity {
 
 	}
 
+	protected String getSettingValue(String key) {
+		return sf.SettingManager_ReadString(getContext(), key);
+	}
+
+	protected void setSettingValue(String key, String value) {
+		sf.SettingManager_WriteString(this, key, value);
+	}
+
 	protected void hideLogo(Context context) {
 
 		((CoreActivity) context).getActionBar().setIcon(

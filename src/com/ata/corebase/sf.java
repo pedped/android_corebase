@@ -113,6 +113,19 @@ public class sf {
 		}
 	}
 
+	public static String combine(String[] s, String glue) {
+		int k = s.length;
+		if (k == 0) {
+			return null;
+		}
+		StringBuilder out = new StringBuilder();
+		out.append(s[0]);
+		for (int x = 1; x < k; ++x) {
+			out.append(glue).append(s[x]);
+		}
+		return out.toString();
+	}
+
 	private static boolean File_SaveString(Context context, String path,
 			String string) {
 
@@ -1062,6 +1075,15 @@ public class sf {
 
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(activity);
+		prefs.edit().putString(PropertyName, value).commit();
+
+	}
+
+	public static void SettingManager_WriteString(Context context,
+			String PropertyName, String value) {
+
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(context);
 		prefs.edit().putString(PropertyName, value).commit();
 
 	}
