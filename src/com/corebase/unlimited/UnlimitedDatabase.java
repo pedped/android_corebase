@@ -11,7 +11,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.ata.corebase.sf;
 import com.corebase.unlimited.UnlimitedList.DatabaseOrder;
-import com.google.android.gms.internal.ie;
 
 public class UnlimitedDatabase {
 

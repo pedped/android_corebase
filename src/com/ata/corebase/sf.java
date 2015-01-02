@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -27,6 +28,11 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -46,10 +52,12 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
@@ -81,10 +89,12 @@ import android.telephony.TelephonyManager;
 import android.util.AttributeSet;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Display;
 import android.widget.DatePicker;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.corebase.config.BaseConfig;
@@ -92,6 +102,87 @@ import com.corebase.config.BaseConfig;
 public class sf {
 
 	private static final String TAG = "Static Functions";
+
+	public static void ScrollView_ScrollToEnd(final ScrollView view) {
+		view.post(new Runnable() {
+
+			@Override
+			public void run() {
+				view.fullScroll(ScrollView.FOCUS_DOWN);
+			}
+		});
+	}
+
+	public static void ResizeImage(Context context, String path,
+			int CompressRatio, double MaxWidth, double MaxHeight) {
+
+		Bitmap b = BitmapFactory.decodeFile(path);
+
+		double calcWidth = 0;
+		double calcHeight = 0;
+		// get ideal size
+		if (b.getWidth() > b.getHeight()) {
+			// landscape image
+			double ratio = MaxWidth / b.getWidth();
+			double expectedHeight = ratio * b.getHeight();
+			if (expectedHeight <= MaxHeight) {
+				// ideal size valid
+				calcWidth = MaxWidth;
+				calcHeight = expectedHeight;
+			} else {
+				ratio = b.getHeight() * MaxHeight;
+				calcWidth = b.getWidth() * ratio;
+				calcHeight = MaxHeight;
+			}
+		} else {
+			// pot image
+			double ratio = MaxWidth / b.getWidth();
+			double expectedHeight = ratio * b.getHeight();
+			if (expectedHeight <= MaxHeight) {
+				// ideal size valid
+				calcWidth = MaxWidth;
+				calcHeight = expectedHeight;
+			} else {
+				ratio = b.getHeight() * MaxHeight;
+				calcWidth = b.getWidth() * ratio;
+				calcHeight = MaxHeight;
+			}
+		}
+
+		Log.d("Image Rezie", "Original Width : " + b.getWidth()
+				+ " Original Height : " + b.getHeight());
+		Log.d("Image Rezie", "Ideal Width : " + calcWidth + " Ideal Height : "
+				+ calcHeight);
+
+		Bitmap out = Bitmap.createScaledBitmap(b, (int) calcWidth,
+				(int) calcHeight, false);
+
+		File file = new File(path);
+		FileOutputStream fOut;
+		try {
+			fOut = new FileOutputStream(file);
+			out.compress(Bitmap.CompressFormat.JPEG, CompressRatio, fOut);
+			fOut.flush();
+			fOut.close();
+			b.recycle();
+			out.recycle();
+
+		} catch (Exception e) { // TODO
+
+		}
+	}
+
+	public static Bitmap Image_Load(int Scale, String internalPath)
+			throws FileNotFoundException {
+		File cacheFile = new File(internalPath);
+		InputStream fileInputStream = new FileInputStream(cacheFile);
+		BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+		bitmapOptions.inSampleSize = Scale;
+		bitmapOptions.inJustDecodeBounds = false;
+		Bitmap loadedBitmap = BitmapFactory.decodeStream(fileInputStream, null,
+				bitmapOptions);
+		return loadedBitmap;
+	}
 
 	public static Object ExpandableList_GetLongClickItem(
 			ExpandableListView listView, ExpandableListAdapter adapter,
@@ -111,6 +202,14 @@ public class sf {
 		} else {
 			return null;
 		}
+	}
+
+	public static Point GetDeviceWidthHeight(Context context) {
+		Display display = ((Activity) context).getWindowManager()
+				.getDefaultDisplay();
+		Point size = new Point();
+		display.getSize(size);
+		return size;
 	}
 
 	public static String combine(String[] s, String glue) {
@@ -1457,6 +1556,30 @@ public class sf {
 		} else {
 			return value / 1000 + " میلیارد تومان";
 		}
+	}
+
+	public static JSONObject ConvertBasicNameValuePairToJSON(
+			List<NameValuePair> list) throws JSONException {
+
+		JSONObject json = new JSONObject();
+		for (NameValuePair basicNameValuePair : list) {
+			json.put(basicNameValuePair.getName(),
+					basicNameValuePair.getValue());
+		}
+		return json;
+	}
+
+	public static List<NameValuePair> ConvertJSON_TO_BasicNameValuePair(
+			String item) throws JSONException {
+
+		List<NameValuePair> items = new ArrayList<NameValuePair>();
+		JSONObject json = new JSONObject(item);
+		Iterator<String> keys = json.keys();
+		while (keys.hasNext()) {
+			String key = keys.next();
+			items.add(new BasicNameValuePair(key, json.getString(key)));
+		}
+		return items;
 	}
 
 	/**

@@ -49,6 +49,10 @@ public class CoreActivity extends ActionBarActivity {
 		return (ImageView) this.findViewById(ResCode);
 	}
 
+	public LinearLayout findLinearLayout(int ResCode) {
+		return (LinearLayout) this.findViewById(ResCode);
+	}
+
 	public UnlimitedListView findUnlimitedListView(int ResCode) {
 		return (UnlimitedListView) this.findViewById(ResCode);
 	}

@@ -4,9 +4,11 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Hashtable;
@@ -17,9 +19,15 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MIME;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
@@ -34,8 +42,10 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.ata.corebase.async.Async_WebRequest;
+import com.ata.corebase.async.Async_WebUpload;
 import com.ata.corebase.interfaces.OnDownloadListner;
 import com.ata.corebase.interfaces.OnResponseListener;
+import com.corebase.interfaces.onUploadListner;
 
 public class nc {
 
@@ -44,6 +54,291 @@ public class nc {
 	private static final String CNAME = "Network Connection";
 
 	private static Hashtable<Integer, AsyncTask<String, String, String>> runningAsyncs = new Hashtable<Integer, AsyncTask<String, String, String>>();
+
+	public static String uploadfile(Context context, String upLoadServerUri,
+			List<String> sourceFileUri, List<NameValuePair> params,
+			onUploadListner uploadListner) throws IOException {
+
+		// check if user logged in, add user id and token to request
+		if (sf.isUserLoggedIn(context)) {
+			String userid = sf.SettingManager_ReadString(context, "userid");
+			String token = sf.SettingManager_ReadString(context, "token");
+			params.add(new BasicNameValuePair("auth_userid", userid));
+			params.add(new BasicNameValuePair("auth_token", token));
+		}
+
+		HttpClient client = new DefaultHttpClient();
+		HttpPost post = new HttpPost(upLoadServerUri);
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+		// find total file length and add to items
+		long totalFilesLength = 0;
+		int startItem = 1;
+		for (String fileItem : sourceFileUri) {
+			final File file = new File(fileItem);
+			FileBody fb = new FileBody(file);
+			builder.addPart("file" + startItem, fb);
+			totalFilesLength += file.length();
+			startItem++;
+		}
+
+		// add parameters
+		for (NameValuePair nameValuePair : params) {
+			builder.addTextBody(nameValuePair.getName(),
+					nameValuePair.getValue(),
+					ContentType.create("text/plain", MIME.UTF8_CHARSET)); //
+		}
+
+		final HttpEntity yourEntity = builder.build();
+
+		final long TotalLength = totalFilesLength;
+		class ProgressiveEntity implements HttpEntity {
+
+			public long TotalLength = 0;
+			protected onUploadListner uploadL;
+
+			@Override
+			public void consumeContent() throws IOException {
+				yourEntity.consumeContent();
+			}
+
+			@Override
+			public InputStream getContent() throws IOException,
+					IllegalStateException {
+				return yourEntity.getContent();
+			}
+
+			@Override
+			public Header getContentEncoding() {
+				return yourEntity.getContentEncoding();
+			}
+
+			@Override
+			public long getContentLength() {
+				return yourEntity.getContentLength();
+			}
+
+			@Override
+			public Header getContentType() {
+				return yourEntity.getContentType();
+			}
+
+			@Override
+			public boolean isChunked() {
+				return yourEntity.isChunked();
+			}
+
+			@Override
+			public boolean isRepeatable() {
+				return yourEntity.isRepeatable();
+			}
+
+			@Override
+			public boolean isStreaming() {
+				return yourEntity.isStreaming();
+			} // CONSIDER put a _real_ delegator into here!
+
+			@Override
+			public void writeTo(OutputStream outstream) throws IOException {
+
+				class ProxyOutputStream extends FilterOutputStream {
+					/**
+					 * @author Stephen Colebourne
+					 */
+
+					public ProxyOutputStream(OutputStream proxy) {
+						super(proxy);
+					}
+
+					public void write(int idx) throws IOException {
+						out.write(idx);
+					}
+
+					public void write(byte[] bts) throws IOException {
+						out.write(bts);
+					}
+
+					public void write(byte[] bts, int st, int end)
+							throws IOException {
+						out.write(bts, st, end);
+					}
+
+					public void flush() throws IOException {
+						out.flush();
+					}
+
+					public void close() throws IOException {
+						out.close();
+					}
+				} // CONSIDER import this class (and risk more Jar File Hell)
+
+				class ProgressiveOutputStream extends ProxyOutputStream {
+
+					private long procced = 0;
+
+					public ProgressiveOutputStream(OutputStream proxy) {
+						super(proxy);
+					}
+
+					public void write(byte[] bts, int st, int end)
+							throws IOException {
+
+						procced += (end - st);
+						long done = (int) (((double) procced)
+								/ ((double) TotalLength) * 100L);
+						;
+						Log.d("progress", done + "%");
+
+						if (uploadL != null)
+							uploadL.onPercentChange(procced, TotalLength,
+									(int) done);
+
+						out.write(bts, st, end);
+					}
+				}
+
+				yourEntity.writeTo(new ProgressiveOutputStream(outstream));
+			}
+
+		}
+		ProgressiveEntity myEntity = new ProgressiveEntity();
+		myEntity.TotalLength = TotalLength;
+		myEntity.uploadL = uploadListner;
+
+		post.setEntity(myEntity);
+
+		if (uploadListner != null) {
+			uploadListner.onStart();
+		}
+		HttpResponse response = client.execute(post);
+		if (uploadListner != null) {
+			String result = getContent(response);
+
+			Log.i("WEB RESPONSE",
+					"=================================================================");
+			Log.i("WEB RESPONSE", "requests: \n ");
+
+			// echo url
+			Log.i("WEB RESPONSE", "URL: " + upLoadServerUri);
+
+			// echo parameters
+			for (int i = 0; i < params.size(); i++) {
+				Log.i("WEB RESPONSE", "* " + params.get(i).getName() + " : "
+						+ params.get(i).getValue());
+			}
+
+			Log.i("WEB RESPONSE",
+					"+ + + + + + + + + + + + + + + + + + + + + + + + + + +");
+			Log.i("WEB RESPONSE", "result: " + result);
+			Log.i("WEB RESPONSE",
+					"==================================================================");
+
+			return result;
+		}
+		return "";
+
+		// String fileName = sourceFileUri;
+		//
+		// HttpURLConnection conn = null;
+		// DataOutputStream dos = null;
+		// String lineEnd = "\r\n";
+		// String twoHyphens = "--";
+		// String boundary = "*****";
+		// int bytesRead, bytesAvailable, bufferSize;
+		// byte[] buffer;
+		// int maxBufferSize = 1 * 1024 * 1024;
+		// File sourceFile = new File(sourceFileUri);
+		// if (!sourceFile.isFile()) {
+		// Log.e("uploadFile", "Source File Does not exist");
+		// return null;
+		// }
+		// int serverResponseCode;
+		// try { // open a URL connection to the Servlet
+		// FileInputStream fileInputStream = new FileInputStream(sourceFile);
+		// URL url = new URL(upLoadServerUri);
+		// conn = (HttpURLConnection) url.openConnection(); // Open a HTTP
+		// // connection to
+		// // the URL
+		// conn.setDoInput(true); // Allow Inputs
+		// conn.setDoOutput(true); // Allow Outputs
+		// conn.setUseCaches(false); // Don't use a Cached Copy
+		// conn.setRequestMethod("POST");
+		// conn.setRequestProperty("Connection", "Keep-Alive");
+		// conn.setRequestProperty("ENCTYPE", "multipart/form-data");
+		// conn.setRequestProperty("Content-Type",
+		// "multipart/form-data;boundary=" + boundary);
+		// conn.setRequestProperty("uploaded_file", fileName);
+		// dos = new DataOutputStream(conn.getOutputStream());
+		//
+		// dos.writeBytes(twoHyphens + boundary + lineEnd);
+		// dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\";filename=\""
+		// + fileName + "\"" + lineEnd);
+		// dos.writeBytes(lineEnd);
+		//
+		// bytesAvailable = fileInputStream.available(); // create a buffer of
+		// // maximum size
+		//
+		// bufferSize = Math.min(bytesAvailable, maxBufferSize);
+		// buffer = new byte[bufferSize];
+		//
+		// // read file and write it into form...
+		// bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+		//
+		// while (bytesRead > 0) {
+		// dos.write(buffer, 0, bufferSize);
+		// bytesAvailable = fileInputStream.available();
+		// bufferSize = Math.min(bytesAvailable, maxBufferSize);
+		// bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+		// }
+		//
+		// // send multipart form data necesssary after file data...
+		// dos.writeBytes(lineEnd);
+		// dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+		//
+		// // Responses from the server (code and message)
+		// serverResponseCode = conn.getResponseCode();
+		// String serverResponseMessage = conn.getResponseMessage();
+		//
+		// // get response
+		// BufferedReader r = new BufferedReader(new InputStreamReader(
+		// conn.getInputStream()));
+		// StringBuilder total = new StringBuilder();
+		// String line;
+		// while ((line = r.readLine()) != null) {
+		// total.append(line);
+		// }
+		//
+		// String result = total.toString();
+		//
+		// Log.i("uploadFile", "HTTP Response is : " + serverResponseMessage
+		// + ": " + serverResponseCode);
+		// // close the streams //
+		// fileInputStream.close();
+		// dos.flush();
+		// dos.close();
+		// if (serverResponseCode == 200) {
+		// return result;
+		// }
+		//
+		// } catch (MalformedURLException ex) {
+		// ex.printStackTrace();
+		// Log.e("Upload file to server", "error: " + ex.getMessage(), ex);
+		// return null;
+		// } catch (Exception e) {
+		// return null;
+		// }
+		// return null;
+
+	}
+
+	public static void UploadFile(Context context, String url,
+			List<String> filePath, List<NameValuePair> params,
+			onUploadListner listner) {
+
+		new Async_WebUpload(context, url, filePath, params, listner)
+				.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+	}
 
 	public static void WebRequest(int code, String url, Context context,
 			List<NameValuePair> params, OnResponseListener listner) {
