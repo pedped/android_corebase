@@ -56,6 +56,8 @@ public class UnlimitedList {
 	private List<UnlimitedDatabaseItem> offlineData = new ArrayList<UnlimitedDatabaseItem>();
 	private String checkChangeTag = "";
 	private OnUnlimitedCheckChangeListner onCheckChangeListner;
+	private boolean hasMoreData = true;
+
 	/**
 	 * checks whetere we are sending request to server at this time or not
 	 */
@@ -143,8 +145,11 @@ public class UnlimitedList {
 			}
 
 		} else {
-			// we have to load online mode
-			requestServer(getLink(), startPos, getLimit());
+			// we have to load online mode, check if we have more data to load
+			// for first load , more data is enable, so we can fetch more data
+			if (hasMoreData()) {
+				requestServer(getLink(), startPos, getLimit());
+			}
 		}
 
 	}
@@ -239,6 +244,13 @@ public class UnlimitedList {
 					// start fetching keys and add each key value
 					// as name value pair
 					JSONArray array = new JSONArray(result);
+
+					// check if recieved data are lower than limit, set more
+					// data off
+					if (array.length() < limit) {
+						setHasMoreData(false);
+					}
+
 					List<ItemObject> loadedItems = new ArrayList<UnlimitedList.ItemObject>();
 					for (int i = 0; i < array.length(); i++) {
 						JSONObject json = array.getJSONObject(i);
@@ -285,6 +297,16 @@ public class UnlimitedList {
 					adapter.Refresh();
 				} catch (Exception e) {
 					e.printStackTrace();
+
+					// call error listner
+					if (onLoadListner != null) {
+						onLoadListner.OnError();
+					}
+				}
+
+				// call anytime function
+				if (onLoadListner != null) {
+					onLoadListner.Anytime();
 				}
 
 			}
@@ -515,5 +537,18 @@ public class UnlimitedList {
 
 		// set check change listner in adapter
 		adapter.setCheckChangeListner(fieldName, this.onCheckChangeListner);
+	}
+
+	/**
+	 * indicate wheter we have more data
+	 * 
+	 * @return
+	 */
+	public boolean hasMoreData() {
+		return hasMoreData;
+	}
+
+	public void setHasMoreData(boolean hasMoreData) {
+		this.hasMoreData = hasMoreData;
 	}
 }

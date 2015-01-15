@@ -19,6 +19,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -49,6 +50,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -89,6 +91,7 @@ import android.telephony.TelephonyManager;
 import android.util.AttributeSet;
 import android.util.Base64;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.widget.DatePicker;
 import android.widget.ExpandableListAdapter;
@@ -111,6 +114,22 @@ public class sf {
 				view.fullScroll(ScrollView.FOCUS_DOWN);
 			}
 		});
+	}
+
+	public static float ConvertDPtoPX(Context context, int DP) {
+		Resources r = context.getResources();
+		float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, DP,
+				r.getDisplayMetrics());
+		return px;
+	}
+
+	public static void SetLocal(Context context, String local) {
+		Locale locale = new Locale("fa");
+		Locale.setDefault(locale);
+		Configuration config = new Configuration();
+		config.locale = locale;
+		context.getResources().updateConfiguration(config,
+				context.getResources().getDisplayMetrics());
 	}
 
 	public static void ResizeImage(Context context, String path,

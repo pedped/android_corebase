@@ -9,4 +9,8 @@ public interface OnUnlimitedListLoadListner {
 	public void onFirstLoad(List<ItemObject> items);
 	
 	public void onMoreLoad(List<ItemObject> items);
+	
+	public void Anytime();
+	
+	public void OnError();
 }

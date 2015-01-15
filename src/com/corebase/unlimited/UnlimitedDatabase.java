@@ -161,6 +161,10 @@ public class UnlimitedDatabase {
 		return items;
 	}
 
+	public void DeleteAllItem() {
+		database.delete(TableName, "", null);
+	}
+
 	public List<UnlimitedDatabaseItem> GetAllItems(int startPos, int limit,
 			DatabaseOrder databaseOrder) {
 

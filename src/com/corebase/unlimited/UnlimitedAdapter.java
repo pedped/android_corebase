@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.ata.corebase.TimeAgo;
 import com.corebase.imageloader.ImageLoader;
 import com.corebase.interfaces.OnUnlimitedCheckChangeListner;
 import com.corebase.unlimited.UnlimitedList.ItemObject;
@@ -62,7 +64,7 @@ public class UnlimitedAdapter<T> extends BaseAdapter {
 		}
 
 		public static enum UnlimitListAdapterItemType {
-			CheckBox, TextView, EditText, ImageView, RatingBar
+			CheckBox, TextView, EditText, ImageView, RatingBar, HTMLText, Timeago
 		}
 
 	}
@@ -148,10 +150,13 @@ public class UnlimitedAdapter<T> extends BaseAdapter {
 					viewHolder.imageViews.put(showItem.tagName, imgView);
 					break;
 				case TextView:
+				case HTMLText:
+				case Timeago:
 					TextView txtView = (TextView) rowView
 							.findViewWithTag(showItem.tagName);
 					viewHolder.textViews.put(showItem.tagName, txtView);
 					break;
+
 				case RatingBar:
 					RatingBar rateView = (RatingBar) rowView
 							.findViewWithTag(showItem.tagName);
@@ -183,36 +188,47 @@ public class UnlimitedAdapter<T> extends BaseAdapter {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				chb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
-					@Override
-					public void onCheckedChanged(CompoundButton arg0,
-							boolean arg1) {
+				// check if we have check change listner
+				if (onCheckChangeListner != null) {
+					chb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
-						try {
+						@Override
+						public void onCheckedChanged(CompoundButton arg0,
+								boolean arg1) {
 
-							// change field value
-							JSONObject jsoned = (new JSONObject(item.jsonObject));
-							jsoned.put(showItem.fieldName, chb.isChecked());
-							item.jsonObject = jsoned.toString();
+							try {
 
-							// change show item is checked
-							showItem.isChecked = chb.isChecked();
+								// change field value
+								JSONObject jsoned = (new JSONObject(
+										item.jsonObject));
+								jsoned.put(showItem.fieldName, chb.isChecked());
+								item.jsonObject = jsoned.toString();
 
-							// check if item is checked
-							if (onCheckChangeListner != null) {
-								List<ItemObject> checkedItems = getCheckedItemAsItemObject(checkChangeTagName);
-								onCheckChangeListner.onCheckChange(
-										checkedItems.size(), checkedItems);
+								// change item view
+								item.items.put(showItem.fieldName,
+										arg1 ? "true" : "false");
+
+								// change show item is checked
+								showItem.isChecked = chb.isChecked();
+
+								// check if item is checked
+								if (onCheckChangeListner != null) {
+									List<ItemObject> checkedItems = getCheckedItemAsItemObject(checkChangeTagName);
+									onCheckChangeListner.onCheckChange(
+											checkedItems.size(), checkedItems);
+								}
+
+								// refresh the list
+								Refresh();
+
+							} catch (JSONException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
 							}
-
-						} catch (JSONException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						}
-					}
-				});
-
+					});
+				}
 				break;
 			case EditText:
 				break;
@@ -225,6 +241,17 @@ public class UnlimitedAdapter<T> extends BaseAdapter {
 			case TextView:
 				TextView txtView = holder.textViews.get(showItem.tagName);
 				txtView.setText(item.get(showItem.fieldName));
+				break;
+			case Timeago:
+				TextView txtTimeView = holder.textViews.get(showItem.tagName);
+				TimeAgo ago = new TimeAgo(context);
+				txtTimeView.setText(ago.timeAgo(Long.valueOf(item
+						.get(showItem.fieldName))));
+				break;
+			case HTMLText:
+				TextView txthtmlView = holder.textViews.get(showItem.tagName);
+				txthtmlView
+						.setText(Html.fromHtml(item.get(showItem.fieldName)));
 				break;
 			case RatingBar:
 				RatingBar rateView = holder.ratingViews.get(showItem.tagName);

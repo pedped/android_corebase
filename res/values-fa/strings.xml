@@ -3,12 +3,12 @@
     <string name="app_name">corebase</string>
     <string name="khata">خطا</string>
     <string name="motevajehshodam">متوجه شدم</string>
-    <string name="are_you_sure_you_want_logout_of_your_account">Are you sure you want logout of your account</string>
-    <string name="logout">Logout</string>
-    <string name="yes_logout">Yes, Logout</string>
-    <string name="loading_please_wait">Loading, Please Wait</string>
-    <string name="ok">OK</string>
-    <string name="ooops">Ooops</string>
+    <string name="are_you_sure_you_want_logout_of_your_account">ایا برای خروج از برنامه اطمینان دارید؟</string>
+    <string name="logout">خروج</string>
+    <string name="yes_logout">بله، خارح شو</string>
+    <string name="loading_please_wait">در حال خواندن، منتظر بمانید</string>
+    <string name="ok">متوجه شدم</string>
+    <string name="ooops">خطا</string>
     <string name="error_only_numeric_digits_allowed">Only numeric digits are allowed.</string>
     <string name="error_only_numeric_digits_range_allowed">Only numeric digits within the range %1$s - %2$s are allowed.</string>
     <string name="error_this_field_cannot_contain_special_character">This field cannot contain any special character</string>
@@ -23,38 +23,38 @@
     <string name="error_notvalid_personname">Not a valid first or last name.</string>
     <string name="error_notvalid_personfullname">Not a valid full name.</string>
     <string name="error_date_not_valid">Format not valid</string>
-    <string name="cancel">Cancel</string>
-
+    
     <!-- Time Ago -->
-
+    
     <string name="time_ago_prefix"></string>
-    <string name="time_ago_suffix">ago</string>
-    <string name="time_ago_seconds">less than a minute</string>
-    <string name="time_ago_minute">about a minute</string>
-    <string name="time_ago_hour">about an hour</string>
-    <string name="time_ago_day">a day</string>
-    <string name="time_ago_month">about a month</string>
-    <string name="time_ago_year">about a year</string>
-
+    <string name="time_ago_suffix">پیش</string>
+    
+    <string name="time_ago_seconds">کمتر از یک دقیقه</string>
+    <string name="time_ago_minute">حدود یک دقیقه</string>
+    <string name="time_ago_hour">حدود یک ساعت</string>
+    <string name="time_ago_day">یک روز</string>
+    <string name="time_ago_month">حدود یک ماه</string>
+    <string name="time_ago_year">حدود یک سال</string>
+    
     <plurals name="time_ago_minutes">
-        <item quantity="one">%d minute</item>
-        <item quantity="other">%d minutes</item>
+        <item quantity="one">%d دقیقه</item>
+        <item quantity="other">%d دقیقه</item>
     </plurals>
     <plurals name="time_ago_hours">
-        <item quantity="one">%d hour</item>
-        <item quantity="other">about %d hours</item>
+        <item quantity="one">%d ساعت</item>
+        <item quantity="other">حدود %d ساعت</item>
     </plurals>
     <plurals name="time_ago_days">
-        <item quantity="one">%d day</item>
-        <item quantity="other">%d days</item>
+        <item quantity="one">%d روز</item>
+        <item quantity="other">%d روز</item>
     </plurals>
     <plurals name="time_ago_months">
-        <item quantity="one">%d month</item>
-        <item quantity="other">%d months</item>
+        <item quantity="one">%d ماه</item>
+        <item quantity="other">%d ماه</item>
     </plurals>
     <plurals name="time_ago_years">
-        <item quantity="one">%d year</item>
-        <item quantity="other">%d years</item>
-    </plurals>
+        <item quantity="one">%d سال</item>
+        <item quantity="other">%d سال</item>
+    </plurals>        
 
 </resources>

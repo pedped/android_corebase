@@ -173,7 +173,7 @@ public class CoreActivity extends ActionBarActivity {
 					public void onCancel(DialogInterface arg0) {
 
 					}
-				}).setNegativeButton("Cancel", new OnClickListener() {
+				}).setNegativeButton(R.string.cancel, new OnClickListener() {
 
 					@Override
 					public void onClick(DialogInterface arg0, int arg1) {
